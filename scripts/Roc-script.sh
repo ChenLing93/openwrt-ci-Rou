@@ -1,18 +1,13 @@
 # 修改默认IP & 固件名称 & 编译署名和时间
-sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
-sed -i "s/hostname='.*'/hostname='Roc'/g" package/base-files/files/bin/config_generate
-sed -i "s#_('Firmware Version'), (L\.isObject(boardinfo\.release) ? boardinfo\.release\.description + ' / ' : '') + (luciversion || ''),# \
-            _('Firmware Version'),\n \
-            E('span', {}, [\n \
-                (L.isObject(boardinfo.release)\n \
-                ? boardinfo.release.description + ' / '\n \
-                : '') + (luciversion || '') + ' / ',\n \
-            E('a', {\n \
-                href: 'https://github.com/laipeng668/openwrt-ci-roc/releases',\n \
-                target: '_blank',\n \
-                rel: 'noopener noreferrer'\n \
-                }, [ 'Built by Roc $(date "+%Y-%m-%d %H:%M:%S")' ])\n \
-            ]),#" feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
+sed -i "s/hostname='.*'/hostname='IPQ6000'/g" package/base-files/files/bin/config_generate
+# 修改本地时间格式
+sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
+
+# 修改版本为编译日期
+date_version=$(date +"%y.%m.%d")
+orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
+sed -i "s/${orig_version}/R${date_version} by Haiibo/g" package/lean/default-settings/files/zzz-default-settings
 
 # 调整NSS驱动q6_region内存区域预留大小（ipq6018.dtsi默认预留85MB，ipq6018-512m.dtsi默认预留55MB，带WiFi必须至少预留54MB，以下分别是改成预留16MB、32MB、64MB和96MB）
 # sed -i 's/reg = <0x0 0x4ab00000 0x0 0x[0-9a-f]\+>/reg = <0x0 0x4ab00000 0x0 0x01000000>/' target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq6018-512m.dtsi
@@ -84,3 +79,26 @@ echo "baidu.com"  > package/luci-app-passwall/luci-app-passwall/root/usr/share/p
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
+
+cat >> package/base-files/files/etc/uci-defaults/99-argon-config << 'EOF'
+#!/bin/sh
+
+# 设置 Argon 主题全局参数
+uci set argon.@global[0].primary='#31A1A1'
+uci set argon.@global[0].dark_primary='#31A1A1'
+uci set argon.@global[0].transparency='0.3'
+uci set argon.@global[0].transparency_dark='0.3'
+uci set argon.@global[0].blur='10'
+uci set argon.@global[0].blur_dark='10'
+
+# 提交更改
+uci commit argon
+
+# 可选：如果希望立即生效且不被后续操作覆盖，可以重启 uci 服务或直接应用
+# /etc/init.d/ucitrack restart 
+
+exit 0
+EOF
+
+# 赋予执行权限
+chmod +x package/base-files/files/etc/uci-defaults/99-argon-config
