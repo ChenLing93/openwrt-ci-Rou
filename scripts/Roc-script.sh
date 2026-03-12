@@ -1,18 +1,8 @@
-#!/bin/bash
-
-set -e # 遇到错误立即停止，防止错误累积
-
-# ---------------------------------------------------------
-# 1. 基础信息修改 (IP, 主机名, 版本, 时间)
-# ---------------------------------------------------------
-echo ">>> 修改基础系统信息..."
 sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
 # 修改主机名 (修复了原脚本中多余的引号错误)
 sed -i "s/hostname='.*'/hostname='IPQ6000'/g" package/base-files/files/bin/config_generate
-
 # 修改时间显示格式 (对 > 进行转义以防万一)
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
-
 # 修改固件版本标识
 if [ -f "package/lean/default-settings/files/zzz-default-settings" ]; then
     date_version=$(date +"%y.%m.%d")
@@ -28,8 +18,6 @@ else
     echo ">>> 警告：未找到 zzz-default-settings 文件，跳过版本修改。"
 fi
 
-
-sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 # ---------------------------------------------------------
 # 2. 硬件底层优化 (NSS 内存预留, CPU 电压)
 # ---------------------------------------------------------
