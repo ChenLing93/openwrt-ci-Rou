@@ -1,22 +1,21 @@
 sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
-# 修改主机名 (修复了原脚本中多余的引号错误)
 sed -i "s/hostname='.*'/hostname='IPQ6000'/g" package/base-files/files/bin/config_generate
-# 修改时间显示格式 (对 > 进行转义以防万一)
+sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
+# 修改本地时间格式
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
-# 修改固件版本标识
-if [ -f "package/lean/default-settings/files/zzz-default-settings" ]; then
-    date_version=$(date +"%y.%m.%d")
-    orig_version=$(grep "DISTRIB_REVISION=" package/lean/default-settings/files/zzz-default-settings | awk -F "'" '{print $2}')
-    
-    if [ -n "$orig_version" ]; then
-        sed -i "s/${orig_version}/R${date_version} by Haiibo/g" package/lean/default-settings/files/zzz-default-settings
-        echo ">>> 版本已更新为: R${date_version} by Haiibo"
-    else
-        echo ">>> 未找到原始版本号，跳过版本替换。"
-    fi
-else
-    echo ">>> 警告：未找到 zzz-default-settings 文件，跳过版本修改。"
-fi
+
+# 修改版本为编译日期
+date_version=$(date +"%y.%m.%d")
+orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
+sed -i "s/${orig_version}/R${date_version} by Haiibo/g" package/lean/default-settings/files/zzz-default-settings
+
+# 修复 hostapd 报错
+cp -f $GITHUB_WORKSPACE/scripts/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
+
+# 修复 armv8 设备 xfsprogs 报错
+sed -i 's/TARGET_CFLAGS.*/TARGET_CFLAGS += -DHAVE_MAP_SYNC -D_LARGEFILE64_SOURCE/g' feeds/packages/utils/xfsprogs/Makefile
+
+# 修改 Makefile
 
 # ---------------------------------------------------------
 # 2. 硬件底层优化 (NSS 内存预留, CPU 电压)
@@ -52,9 +51,6 @@ rm -rf feeds/packages/net/frp
 rm -rf feeds/packages/lang/golang
 
 # 【重要】清理所有可能冲突的自定义插件目录
-rm -rf package/luci-app-store
-rm -rf package/luci-app-quickstart
-rm -rf package/quickstart
 rm -rf package/homebox
 rm -rf package/ookla-speedtest
 rm -rf package/wrtbwmon
@@ -112,61 +108,6 @@ git clone --depth=1 https://github.com/laipeng668/luci-app-gecoosac package/luci
 git clone --depth=1 https://github.com/NONGFAH/luci-app-athena-led package/luci-app-athena-led
 chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led package/luci-app-athena-led/root/usr/sbin/athena-led 2>/dev/null || true
 
-# --- C. 【核心修复】Linkease (iStore & QuickStart) ---
-echo ">>> 正在处理 Linkease (iStore/QuickStart) 依赖..."
-rm -rf package/nas-packages package/nas-packages-luci
-
-git clone --depth=1 https://github.com/linkease/nas-packages.git package/nas-packages
-git clone --depth=1 https://github.com/linkease/nas-packages-luci.git package/nas-packages-luci
-
-# 1. 移动二进制包 (quickstart, homebox)
-if [ -d "package/nas-packages/network/quickstart" ]; then
-    mv -f package/nas-packages/network/quickstart package/quickstart
-    echo "✅ quickstart (binary) 已提取"
-else
-    echo "⚠️ 警告：未找到 quickstart 二进制包"
-fi
-
-if [ -d "package/nas-packages/utils/homebox" ]; then
-    mv -f package/nas-packages/utils/homebox package/homebox
-    echo "✅ homebox (binary) 已提取"
-fi
-
-# 2. 移动界面包 (luci-app-store, luci-app-quickstart)
-if [ -f "package/nas-packages-luci/luci/luci-app-store/Makefile" ]; then
-    mv -f package/nas-packages-luci/luci/luci-app-store package/luci-app-store
-    echo "✅ luci-app-store 已提取"
-else
-    echo "❌ 错误：luci-app-store 的 Makefile 不存在！检查目录结构。"
-    ls -R package/nas-packages-luci
-    exit 1
-fi
-
-if [ -d "package/nas-packages-luci/luci/luci-app-quickstart" ]; then
-    mv -f package/nas-packages-luci/luci/luci-app-quickstart package/luci-app-quickstart
-    echo "✅ luci-app-quickstart 已提取"
-fi
-
-# 清理临时大仓库
-rm -rf package/nas-packages
-rm -rf package/nas-packages-luci
-
-# --- D. 其他关键依赖 (Wrtbwmon, Ookla) ---
-echo ">>> 下载其他关键依赖..."
-
-# 1. Wrtbwmon (WechatPush 依赖)
-git clone --depth=1 https://github.com/brv2001/wrtbwmon.git package/wrtbwmon
-echo "✅ wrtbwmon 已下载"
-
-# 2. Ookla-Speedtest (NetSpeedTest 依赖)
-git clone --depth=1 https://github.com/sirpdboy/sirpdboy-package.git package/tmp-sirp-pkg
-if [ -d "package/tmp-sirp-pkg/ookla-speedtest" ]; then
-    mv -f package/tmp-sirp-pkg/ookla-speedtest package/ookla-speedtest
-    echo "✅ ookla-speedtest 已下载"
-else
-    echo "⚠️ 警告：未找到 ookla-speedtest，NetSpeedTest 可能仅能使用 LibreSpeed 引擎"
-fi
-rm -rf package/tmp-sirp-pkg
 
 # --- E. 下载主插件 (此时依赖已就绪) ---
 echo ">>> 下载主插件..."
