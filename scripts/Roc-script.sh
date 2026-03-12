@@ -7,17 +7,40 @@ set -e # 遇到错误立即停止，防止错误累积
 # ---------------------------------------------------------
 echo ">>> 修改基础系统信息..."
 sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
-sed -i "s/hostname='.*'/hostname='IPQ6000'/g' package/base-files/files/bin/config_generate
+# 修改主机名 (修复了原脚本中多余的引号错误)
+sed -i "s/hostname='.*'/hostname='IPQ6000'/g" package/base-files/files/bin/config_generate
+
+# 修改时间显示格式 (对 > 进行转义以防万一)
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
-date_version=$(date +"%y.%m.%d")
-orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
-sed -i "s/${orig_version}/R${date_version} by Haiibo/g" package/lean/default-settings/files/zzz-default-settings
+
+# 修改固件版本标识
+if [ -f "package/lean/default-settings/files/zzz-default-settings" ]; then
+    date_version=$(date +"%y.%m.%d")
+    orig_version=$(grep "DISTRIB_REVISION=" package/lean/default-settings/files/zzz-default-settings | awk -F "'" '{print $2}')
+    
+    if [ -n "$orig_version" ]; then
+        sed -i "s/${orig_version}/R${date_version} by Haiibo/g" package/lean/default-settings/files/zzz-default-settings
+        echo ">>> 版本已更新为: R${date_version} by Haiibo"
+    else
+        echo ">>> 未找到原始版本号，跳过版本替换。"
+    fi
+else
+    echo ">>> 警告：未找到 zzz-default-settings 文件，跳过版本修改。"
+fi
+
 
 sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 # ---------------------------------------------------------
 # 2. 硬件底层优化 (NSS 内存预留, CPU 电压)
 # ---------------------------------------------------------
 echo ">>> 应用 IPQ60xx 硬件优化..."
+
+# sed -i 's/reg = <0x0 0x4ab00000 0x0 0x[0-9a-f]\+>/reg = <0x0 0x4ab00000 0x0 0x01000000>/' target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq6018-512m.dtsi
+# sed -i 's/reg = <0x0 0x4ab00000 0x0 0x[0-9a-f]\+>/reg = <0x0 0x4ab00000 0x0 0x02000000>/' target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq6018-512m.dtsi
+# sed -i 's/reg = <0x0 0x4ab00000 0x0 0x[0-9a-f]\+>/reg = <0x0 0x4ab00000 0x0 0x04000000>/' target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq6018-512m.dtsi
+# sed -i 's/reg = <0x0 0x4ab00000 0x0 0x[0-9a-f]\+>/reg = <0x0 0x4ab00000 0x0 0x06000000>/' target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq6018-512m.dtsi
+
+
 if [ -f "target/linux/qualcommax/patches-6.12/0038-v6.16-arm64-dts-qcom-ipq6018-add-1.5GHz-CPU-Frequency.patch" ]; then
     sed -i 's/opp-microvolt = <937500>;/opp-microvolt = <950000>;/' target/linux/qualcommax/patches-6.12/0038-v6.16-arm64-dts-qcom-ipq6018-add-1.5GHz-CPU-Frequency.patch
     echo ">>> CPU 电压调整完成 (0.9375V -> 0.95V)"
