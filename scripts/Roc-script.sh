@@ -87,43 +87,48 @@ git clone --depth=1 https://github.com/NONGFAH/luci-app-athena-led package/luci-
 git clone --depth=1 https://github.com/sirpdboy/luci-app-netspeedtest package/netspeedtest
 chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led package/luci-app-athena-led/root/usr/sbin/athena-led
 
-# --- C. 【核心修复】下载缺失的后端依赖包 ---
-echo ">>> 正在补全缺失的后端依赖 (QuickStart, Homebox, Speedtest, Wrtbwmon)..."
+rm -rf package/nas-packages package/nas-packages-luci
 
-# 1. 下载 linkease 全家桶 (包含 quickstart 二进制, homebox, luci-app-store 后端等)
 git clone --depth=1 https://github.com/linkease/nas-packages.git package/nas-packages
 git clone --depth=1 https://github.com/linkease/nas-packages-luci.git package/nas-packages-luci
 
-# 提取 store (界面)
-if [ -d "package/nas-packages-luci/luci/luci-app-store" ]; then
-    mv -f package/nas-packages-luci/luci/luci-app-store package/luci-app-store
-fi
-
-# 提取 quickstart (二进制 + 界面)
+# --- 处理二进制包 (nas-packages) ---
+# 移动 quickstart
 if [ -d "package/nas-packages/network/quickstart" ]; then
     mv -f package/nas-packages/network/quickstart package/quickstart
-    echo ">>> quickstart 二进制包已提取"
-fi
-if [ -d "package/nas-packages-luci/luci/luci-app-quickstart" ]; then
-    mv -f package/nas-packages-luci/luci/luci-app-quickstart package/luci-app-quickstart
-    echo ">>> luci-app-quickstart 界面已提取"
+    echo ">>> [OK] quickstart (binary) moved."
 fi
 
-# 提取 homebox (二进制)
+# 移动 homebox
 if [ -d "package/nas-packages/utils/homebox" ]; then
     mv -f package/nas-packages/utils/homebox package/homebox
-    echo ">>> homebox 二进制包已提取"
+    echo ">>> [OK] homebox (binary) moved."
 fi
 
-# 清理 linkease 临时目录
-rm -rf package/nas-packages
-rm -rf package/nas-packages-luci
+# 移动其他可能的依赖 (如 lsblk, smartmontools 等，以防万一)
+for pkg in $(ls package/nas-packages/network 2>/dev/null); do
+    if [ -d "package/nas-packages/network/$pkg" ] && [ ! -d "package/$pkg" ]; then
+        mv -f package/nas-packages/network/$pkg package/$pkg
+    fi
+done
+for pkg in $(ls package/nas-packages/utils 2>/dev/null); do
+    if [ -d "package/nas-packages/utils/$pkg" ] && [ ! -d "package/$pkg" ]; then
+        mv -f package/nas-packages/utils/$pkg package/$pkg
+    fi
+done
 
-# 2. 下载 wrtbwmon (wechatpush 依赖)
-git clone --depth=1 https://github.com/brv2001/wrtbwmon.git package/wrtbwmon
-echo ">>> wrtbwmon 已下载"
+# --- 处理界面包 (nas-packages-luci) ---
+# 移动 luci-app-store
+if [ -d "package/nas-packages-luci/luci/luci-app-store" ]; then
+    mv -f package/nas-packages-luci/luci/luci-app-store package/luci-app-store
+    echo ">>> [OK] luci-app-store moved."
+fi
 
-
+# 移动 luci-app-quickstart
+if [ -d "package/nas-packages-luci/luci/luci-app-quickstart" ]; then
+    mv -f package/nas-packages-luci/luci/luci-app-quickstart package/luci-app-quickstart
+    echo ">>> [OK] luci-app-quickstart moved."
+fi
 rm -rf package/tmp-sirp-pkg
 
 # --- D. 下载主插件 (现在依赖已存在) ---
