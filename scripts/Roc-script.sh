@@ -84,6 +84,7 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky package/luci-app-lu
 git clone --depth=1 https://github.com/destan19/OpenAppFilter.git package/OpenAppFilter
 git clone --depth=1 https://github.com/laipeng668/luci-app-gecoosac package/luci-app-gecoosac
 git clone --depth=1 https://github.com/NONGFAH/luci-app-athena-led package/luci-app-athena-led
+git clone --depth=1 https://github.com/sirpdboy/luci-app-netspeedtest package/netspeedtest
 chmod +x package/luci-app-athena-led/root/etc/init.d/athena_led package/luci-app-athena-led/root/usr/sbin/athena-led
 
 # --- C. 【核心修复】下载缺失的后端依赖包 ---
@@ -122,15 +123,7 @@ rm -rf package/nas-packages-luci
 git clone --depth=1 https://github.com/brv2001/wrtbwmon.git package/wrtbwmon
 echo ">>> wrtbwmon 已下载"
 
-# 3. 下载 ookla-speedtest (netspeedtest 依赖)
-# 尝试从 sirpdboy 的专用包仓库获取
-git clone --depth=1 https://github.com/sirpdboy/sirpdboy-package.git package/tmp-sirp-pkg
-if [ -d "package/tmp-sirp-pkg/ookla-speedtest" ]; then
-    mv -f package/tmp-sirp-pkg/ookla-speedtest package/ookla-speedtest
-    echo ">>> ookla-speedtest 已下载"
-else
-    echo ">>> 警告：未在 sirpdboy-package 找到 ookla-speedtest，netspeedtest 可能无法使用官方引擎，将尝试使用内置替代方案。"
-fi
+
 rm -rf package/tmp-sirp-pkg
 
 # --- D. 下载主插件 (现在依赖已存在) ---
@@ -148,19 +141,7 @@ if [ -d "package/tmp-hyy/luci-app-tasks" ]; then
 fi
 rm -rf package/tmp-hyy
 
-# 4. NetSpeedTest (sirpdboy) - 依赖 ookla-speedtest, homebox 已就绪
-git clone --depth=1 https://github.com/sirpdboy/netspeedtest.git package/netspeedtest
-if [ -d "package/netspeedtest/luci-app-netspeedtest" ]; then
-    mv -f package/netspeedtest/luci-app-netspeedtest package/luci-app-netspeedtest
-    rm -rf package/netspeedtest
-    echo ">>> luci-app-netspeedtest 已提取"
-elif [ -f "package/netspeedtest/Makefile" ]; then
-    mv -f package/netspeedtest package/luci-app-netspeedtest
-    echo ">>> luci-app-netspeedtest 目录已重命名"
-else
-    echo ">>> 错误：netspeedtest 结构异常"
-    rm -rf package/netspeedtest
-fi
+
 
 # ---------------------------------------------------------
 # 6. PassWall & OpenClash 核心替换
@@ -177,6 +158,7 @@ rm -rf feeds/luci/applications/luci-app-openclash
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall2 package/luci-app-passwall2
 git clone --depth=1 https://github.com/vernesong/OpenClash package/luci-app-openclash
+
 
 echo "baidu.com" > package/luci-app-passwall/luci-app-passwall/root/usr/share/passwall/rules/chnlist
 
