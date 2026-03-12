@@ -9,6 +9,8 @@ echo ">>> 修改基础系统信息..."
 sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
 sed -i "s/hostname='.*'/hostname='IPQ6000'/g' package/base-files/files/bin/config_generate
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
+uci set ttyd.@ttyd[0].command='/bin/login -f root'
+uci set ttyd.@ttyd[0].interface='0.0.0.0'
 
 date_version=$(date +"%y.%m.%d")
 orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
