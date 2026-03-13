@@ -116,7 +116,7 @@ echo ">>> 下载主插件..."
 git clone --depth=1 https://github.com/tty228/luci-app-wechatpush package/luci-app-wechatpush
 
 # 2. DDNSTO
-git clone --depth=1 https://github.com/linkease/ddnsto-openwrt.git package/luci-app-ddnsto
+git clone --depth=1 https://github.com/linkease/nas-packages.git package/luci-app-ddnsto
 
 # 4. NetSpeedTest (Sirpdboy)
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest.git package/tmp-netspeed
@@ -130,6 +130,10 @@ else
     echo "⚠️ 警告：netspeedtest 结构异常"
 fi
 rm -rf package/tmp-netspeed
+
+echo >> feeds.conf.default
+echo 'src-git nas https://github.com/linkease/nas-packages.git;master' >> feeds.conf.default
+echo 'src-git nas_luci https://github.com/linkease/nas-packages-luci.git;main' >> feeds.conf.default
 
 # ---------------------------------------------------------
 # 6. PassWall & OpenClash 核心替换
@@ -154,6 +158,8 @@ echo "baidu.com" > package/luci-app-passwall/luci-app-passwall/root/usr/share/pa
 # ---------------------------------------------------------
 echo ">>> 更新 Feeds 索引..."
 ./scripts/feeds update -a
+./scripts/feeds install -a -p nas
+./scripts/feeds install -a -p nas_luci
 ./scripts/feeds install -a
 
 # ---------------------------------------------------------
