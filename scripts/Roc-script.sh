@@ -127,7 +127,7 @@ fi
 rm -rf package/tmp-hyy
 
 # 4. NetSpeedTest (Sirpdboy)
-git clone --depth=1 https://github.com/sirpdboy/luci-app-netspeedtest.git package/tmp-netspeed
+git clone --depth=1 https://github.com/sirpdboy/netspeedtest.git package/tmp-netspeed
 if [ -d "package/tmp-netspeed/luci-app-netspeedtest" ]; then
     mv -f package/tmp-netspeed/luci-app-netspeedtest package/luci-app-netspeedtest
     echo "✅ luci-app-netspeedtest 已提取"
