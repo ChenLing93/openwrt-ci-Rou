@@ -116,15 +116,7 @@ echo ">>> 下载主插件..."
 git clone --depth=1 https://github.com/tty228/luci-app-wechatpush package/luci-app-wechatpush
 
 # 2. DDNSTO
-git clone --depth=1 https://github.com/kubeduck/luci-app-ddnsto.git package/luci-app-ddnsto
-
-# 3. 定时任务 (Tasks)
-git clone --depth=1 https://github.com/Hyy2001X/AutoBuild-Packages.git package/tmp-hyy
-if [ -d "package/tmp-hyy/luci-app-tasks" ]; then
-    mv -f package/tmp-hyy/luci-app-tasks package/luci-app-tasks
-    echo "✅ luci-app-tasks 已提取"
-fi
-rm -rf package/tmp-hyy
+git clone --depth=1 https://github.com/linkease/ddnsto-openwrt.git package/luci-app-ddnsto
 
 # 4. NetSpeedTest (Sirpdboy)
 git clone --depth=1 https://github.com/sirpdboy/netspeedtest.git package/tmp-netspeed
