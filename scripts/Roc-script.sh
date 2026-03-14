@@ -71,6 +71,21 @@ rm -rf package/luci-app-passwall
 rm -rf package/luci-app-passwall2
 rm -rf package/luci-app-openclash
 
+# 下载 homebox (Sirpdboy 源)
+if [ ! -d "package/homebox" ]; then
+    git clone --depth=1 https://github.com/sirpdboy/homebox.git package/homebox
+    echo "✅ homebox 已下载"
+else
+    echo "⏭️ homebox 已存在"
+fi
+# 2. 下载 ookla-speedtest (Sirpdboy 源)
+if [ ! -d "package/ookla-speedtest" ]; then
+    git clone --depth=1 https://github.com/sirpdboy/netspeedtest.git package/ookla-speedtest
+    echo "✅ ookla-speedtest 已下载"
+else
+    echo "⏭️ ookla-speedtest 已存在"
+fi
+
 # ---------------------------------------------------------
 # 4. Git 稀疏克隆函数定义
 # ---------------------------------------------------------
