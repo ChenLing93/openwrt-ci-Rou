@@ -88,7 +88,7 @@ fi
 echo ">>> 正在下载 wrtbwmon..."
 if [ ! -d "package/wrtbwmon" ]; then
     # 从 Sirpdboy 源克隆，兼容性较好
-    git clone --depth=1 https://github.com/sirpdboy/wrtbwmon.git package/wrtbwmon
+    git clone --depth=1 https://github.com/brvphoenix/wrtbwmon.git package/wrtbwmon
     echo "✅ wrtbwmon 已下载"
 else
     echo "⏭️ wrtbwmon 已存在"
