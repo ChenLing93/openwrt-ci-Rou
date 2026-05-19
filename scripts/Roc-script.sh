@@ -1,5 +1,5 @@
 # 修改默认IP & 固件名称 & 编译署名和时间
-sed -i 's/192.168.5.1/192.168.2.1/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.5.1/192.168.1.1/g' package/base-files/files/bin/config_generate
 # 修改本地时间格式
 sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
 
